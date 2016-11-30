@@ -2,7 +2,9 @@ from fenics import *
 
 mesh = Mesh('mesh/res32.xdmf')	# mm
 
-""" Since the mesh is in mm pressure units in pascal must be scaled by alpha = (1e6)**(-1)"""
+plot(mesh,interactive=True)
+
+# Since the mesh is in mm pressure units in pascal must be scaled by alpha = (1e6)**(-1)
 alpha = (1e6)**(-1)
 
 # Mark boundaries
@@ -71,4 +73,5 @@ solver.solve(uh.vector(), b)
 u, ls = uh.split(deepcopy=True) 
 plot(u, mode='displacement', title='Neumann_displacement',interactive=True)
 
-
+file = File('deformed_brain.pvd')
+file << u
