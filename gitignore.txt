@@ -1,0 +1,38 @@
+#Hidden files and folders
+.*
+!.gitignore
+
+#test-files and executables
+test.txt
+testit
+animation
+
+
+#C++ files
+*.o
+*.a
+
+#makefile
+.depend
+obj
+
+#LaTeX files
+*.log
+*.gz
+*.aux
+*.backup
+*.out
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+
+# Kdevelop project files
+.kdev4/
+*.kdev4
+ 
+*.kate-swp
+
+#Doxygen
+html
+latex
