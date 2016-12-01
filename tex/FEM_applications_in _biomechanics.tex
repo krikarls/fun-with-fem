@@ -65,7 +65,7 @@ Here \(\epsilon = \beta h^2\) and \(\beta\) is some number and \(h\) is the mesh
 Boundary conditions
 \begin{align*}
 u = 0 \quad &on \quad \partial \Omega_{\text{ no-slip}} \\
-\frac{\partial u}{\partial \mathbf{n}} - p\mathbf{n} = p_i\mathbf{n} \quad &on \quad \partial \Omega_\text{ opening(i)}
+\sigma \cdot \mathbf{n} = p_i\mathbf{n} \quad &on \quad \partial \Omega_\text{ opening(i)}
 \end{align*}
 
 \section{Squeezing a postdoc's brain}
@@ -92,5 +92,10 @@ Find $u$ such that
 \begin{align*}
   \int_\Omega  2\mu (\epsilon(u) : \epsilon(v))  +\lambda (\nabla \cdot u) (\nabla \cdot v) \: dx = \int_\Omega f \cdot v \: dx \quad \forall v \in V
 \end{align*} 
+
+Boundary conditions
+\begin{align*}
+\sigma \cdot \mathbf{n} = p\mathbf{n} \quad &on \quad \partial \Omega
+\end{align*}
 
 \end{document}
