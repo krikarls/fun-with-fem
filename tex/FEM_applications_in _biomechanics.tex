@@ -77,12 +77,15 @@ A mesh of Erika's brain can be found in the git repository:
   \caption{Numerical solution using FEniCS. Displacement measured in $mm$.}
 \end{figure}
 
-The brain is not clamped in the skull, but in a sence floating around. This means that we must employ \emph{neumann booundary conditions} on the entire boundary. As we know, there are no unique solution to such a problem since all \emph{rigid motions} satify the equation. So in order to obtain a unique solution we must remove all rigid motions. All the possible rigid motions in 3D are: translations in $x,y,z$-direction and rotations around the corresponding axes. Thus six in total.
+The brain is not clamped in the skull, but in a sence floating around. This means that we must employ \emph{neumann boundary conditions} on the entire boundary. As we know, there are no unique solution to such a problem since all \emph{rigid motions} satify the equation. So in order to obtain a unique solution we must remove all rigid motions. All the possible rigid motions in 3D are: translations in $x,y,z$-direction and rotations around the corresponding axes. Thus six in total.
 
 An example using \emph{FEniCS} on how to remove these can be found in the same repository as the brain. 
 
 \subsection{Mathematical formulation}
 
-
+Find $u$ such that 
+\begin{align*}
+  \int_\Omega  2\mu (\epsilon(u) : \epsilon(v))  +\lambda (\nabla \cdot u) (\nabla \cdot v) \: dx = \int_\Omega f \cdot v \: dx \quad \forall v \in V
+\end{align*} 
 
 \end{document}
