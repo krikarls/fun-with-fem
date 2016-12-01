@@ -10,6 +10,7 @@
 \usepackage{epsfig}
 \usepackage[parfill]{parskip} % Removes indents
 \usepackage{color}
+\usepackage{framed}
 \usepackage{vmargin}
 \setpapersize{A4}
 
@@ -40,6 +41,37 @@ Starting from the \texttt{original\_zebrafish.vti} a software called \emph{The V
 Installatiion: http://www.vmtk.org/download/ (Use development version!) 
 
 Tutorials: http://www.vmtk.org/tutorials/
+
+1) Select a volume of interest(VOI)
+\begin{framed}       
+    \texttt{vmtkimagevoiselector -ifile original.vti -ofile voi.vti}
+\end{framed}
+2) Segmentation
+\begin{framed}       
+    \texttt{vmtklevelsetsegmentation -ifile voi.vti -ofile levelsets.vti}
+\end{framed}
+3) Create surface file
+\begin{framed}       
+    \texttt{vmtkmarchingcubes -ifile levelsets.vti -ofile surf.vtp}
+\end{framed}
+4) Smoothing of surface
+\begin{framed}       
+    \texttt{dvmtksurfacesmoothing -ifile surf.vtp -passband 0.1 -iterations 30 -ofile sm\_surf.vtp}
+\end{framed}
+5) Clip surface
+\begin{framed}       
+    \texttt{vmtksurfaceclipper -ifile sm\_surf.vtp -ofile cl\_surface.vtp}
+\end{framed}
+6) Generate mesh
+\begin{framed}       
+    \texttt{vmtkmeshgenerator -ifile cl\_surface.vtp -ofile zebramesh.vtu -edgelength
+1.0}
+\end{framed}
+7) Convert to dolfin-format
+\begin{framed}       
+    \texttt{vmtkmeshwriter -ifile zebramesh.vtu -entityidsarray CellEntityIds -ofile zebra\_mesh.xml}
+\end{framed}
+
 
  \begin{figure}[h!] 
 \begin{center}
