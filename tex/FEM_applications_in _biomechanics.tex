@@ -47,6 +47,21 @@ The blood velocities in a zebrafish are low thus using \emph{Stokes flow} as a m
 
 \subsection{Mathematical formulation}
 
+For for geometries with lots of cells using $P_1-P_1$ formulations saves a lot of time and memory, and to even be able to run simulations on your own computer with the \texttt{zebrafish.xml} mesh such a formulation is needed. 
+
+
+ 
+Find $u,p \in W,\: W = V \times Q $ such that
+\begin{align*}
+a((u,p),(v,q)) = L((v,q)) \quad \forall \quad v,q \in W 
+\end{align*}
+where
+\begin{align*}
+a((u,p),(v,q)) &= \int_\Omega \nabla u \cdot \nabla v - (\nabla \cdot v)p + (\nabla \cdot u)q + \epsilon \nabla q \cdot \nabla p \: dx \\
+L((v,q)) &= \int_\Omega  (v + \epsilon \nabla q) \cdot f \: dx
+\end{align*}
+Here \(\epsilon = \beta h^2\) and \(\beta\) is some number and \(h\) is the mesh cell size.
+
 
 \section{Squeezing a postdoc's brain}
 
@@ -67,5 +82,7 @@ The brain is not clamped in the skull, but in a sence floating around. This mean
 An example using \emph{FEniCS} on how to remove these can be found in the same repository as the brain. 
 
 \subsection{Mathematical formulation}
+
+
 
 \end{document}
