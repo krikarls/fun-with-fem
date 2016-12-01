@@ -62,6 +62,11 @@ L((v,q)) &= \int_\Omega  (v + \epsilon \nabla q) \cdot f \: dx
 \end{align*}
 Here \(\epsilon = \beta h^2\) and \(\beta\) is some number and \(h\) is the mesh cell size.
 
+Boundary conditions
+\begin{align*}
+u = 0 \quad &on \quad \partial \Omega_{\text{ no-slip}} \\
+\frac{\partial u}{\partial \mathbf{n}} - p\mathbf{n} = p_i\mathbf{n} \quad &on \quad \partial \Omega_\text{ opening(i)}
+\end{align*}
 
 \section{Squeezing a postdoc's brain}
 
