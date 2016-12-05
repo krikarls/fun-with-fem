@@ -12,6 +12,7 @@
 \usepackage{color}
 \usepackage{framed}
 \usepackage{vmargin}
+\usepackage{wrapfig}
 \setpapersize{A4}
 
 \definecolor{red}{rgb}{1,0.1,0}
@@ -30,13 +31,22 @@
 
 Since the 1960s, the zebrafish has become increasingly important to scientific research. It has many characteristics that make it a valuable model for studying human genetics and disease. It was the first vertebrate to be cloned and is particularly notable for its regenerative abilities. Zebrafish have a similar genetic structure to humans. They share 70 per cent of genes with us and they are cheaper to maintain than mice. The zebrafish adult is about 2.5 cm to 4 cm long. 
 
-To study the effect of different drugs being able to model the blood flow is important. For instance, if the drug actually never reaches the infected cells a potentially effective drug might be considered ineffective on wrong the wrong basis. 
+\begin{wrapfigure}{r}{0.5\textwidth}
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{zebrafish.png}
+  \end{center}
+  \caption{Stages of zebrafish development.}
+\end{wrapfigure}
+
+To study the effect of different drugs being able to model the blood flow is important. For instance, if the drug actually never reaches the infected cells a potentially effective drug might be considered ineffective on wrong ground. 
+
+
 
 \subsection{Generating mesh from original MRI images}
 
 {\color{red} Kent: Kan du si noe om hva slags bilder dette er?}
 
-Starting from the \texttt{original\_zebrafish.vti} a software called \emph{The Vascular Modeling Toolkit(VMTK)} can be used to create a mesh. VMTK is a collection of libraries and tools for 3D reconstruction, geometric analysis, mesh generation and surface data analysis for image-based modeling of blood vessels.
+Starting from \texttt{original\_zebrafish.vti} a finite element method mesh can be created using a software called \emph{The Vascular Modeling Toolkit(VMTK)}. VMTK is a collection of libraries and tools for 3D reconstruction, geometric analysis, mesh generation and surface data analysis for image-based modeling of blood vessels.
 
 Installatiion: http://www.vmtk.org/download/ (Use development version!) 
 
@@ -101,7 +111,7 @@ a((u,p),(v,q)) = L((v,q)) \quad \forall \quad v,q \in W
 \end{align*}
 where
 \begin{align*}
-a((u,p),(v,q)) &= \int_\Omega \nabla u \cdot \nabla v - (\nabla \cdot v)p + (\nabla \cdot u)q + \epsilon \nabla q \cdot \nabla p \: dx \\
+a((u,p),(v,q)) &= \int_\Omega \nabla u : \nabla v - (\nabla \cdot v)p + (\nabla \cdot u)q + \epsilon \nabla q \cdot \nabla p \: dx \\
 L((v,q)) &= \int_\Omega  (v + \epsilon \nabla q) \cdot f \: dx
 \end{align*}
 Here \(\epsilon = \beta h^2\) and \(\beta\) is some number and \(h\) is the mesh cell size.
@@ -109,7 +119,7 @@ Here \(\epsilon = \beta h^2\) and \(\beta\) is some number and \(h\) is the mesh
 Boundary conditions
 \begin{align*}
 u = 0 \quad &on \quad \partial \Omega_{\text{ no-slip}} \\
-\sigma \cdot \mathbf{n} = p_i\mathbf{n} \quad &on \quad \partial \Omega_\text{ opening(i)}
+\sigma \cdot \mathbf{n} = p_i\mathbf{n} \quad &on \quad \partial \Omega_\text{ opening(i)},\quad i=1,..,5
 \end{align*}
 
 \section{Squeezing a postdoc's brain}
@@ -126,9 +136,9 @@ A mesh of Erika's brain can be found in the git repository:
   \caption{Numerical solution using FEniCS. Displacement measured in $mm$.}
 \end{figure}
 
-The brain is not clamped in the skull, but in a sence floating around. This means that we must employ \emph{neumann boundary conditions} on the entire boundary. As we know, there are no unique solution to such a problem since all \emph{rigid motions} satify the equation. So in order to obtain a unique solution we must remove all rigid motions. All the possible rigid motions in 3D are: translations in $x,y,z$-direction and rotations around the corresponding axes. Thus six in total.
+The brain is not clamped in the skull, but in a sense floating around. This means that we must employ \emph{neumann boundary conditions} on the entire boundary. As we know, there are no unique solution to such a problem since all \emph{rigid motions} satify the equation. So in order to obtain a unique solution we must remove all rigid motions. All the possible rigid motions in 3D are: translations in $x,y,z$-direction and rotations around the corresponding axes. Thus six in total.
 
-An example using \emph{FEniCS} on how to remove these can be found in the same repository as the brain. 
+An example using \emph{FEniCS} on how to remove these can be found in the same repository as the brain mesh. 
 
 \subsection{Mathematical formulation}
 
@@ -142,4 +152,8 @@ Boundary conditions
 \sigma \cdot \mathbf{n} = p\mathbf{n} \quad &on \quad \partial \Omega
 \end{align*}
 
+The material parameters for Erika's brain are $E = 16000 $ Pa and $\nu = 0.25$. The Lamè coefficients can be computed according to 
+\begin{align*}
+\lambda = \frac{E \nu}{(1-2\nu)(1+\nu)} \quad and \quad \mu = \frac{E}{2(1+\nu)}.
+\end{align*}
 \end{document}
