@@ -38,19 +38,22 @@ Since the 1960s, the zebrafish has become increasingly important to scientific r
   \caption{Stages of zebrafish development.}
 \end{wrapfigure}
 
-To study the effect of different drugs being able to model the blood flow is important. For instance, if the drug actually never reaches the infected cells a potentially effective drug might be considered ineffective on wrong ground. 
-
+To study the effect of different drugs being able to model the blood flow is important. For instance, if the drug actually never reaches the infected cells a potentially effective drug might be considered ineffective on wrong ground. Due to ethical reasons all experiments on zebrafish must be done at an very early stage of its development.
 
 
 \subsection{Generating mesh from original MRI images}
 
 {\color{red} Kent: Kan du si noe om hva slags bilder dette er?}
 
-Starting from \texttt{original\_zebrafish.vti} a finite element method mesh can be created using a software called \emph{The Vascular Modeling Toolkit(VMTK)}. VMTK is a collection of libraries and tools for 3D reconstruction, geometric analysis, mesh generation and surface data analysis for image-based modeling of blood vessels.
+Starting from \texttt{original\_zebrafish.vti} a finite element method mesh can be created using a software called \emph{The Vascular Modeling Toolkit(VMTK)}. VMTK is a collection of libraries and tools for 3D reconstruction, geometric analysis, mesh generation and surface data analysis for image-based modeling of blood vessels. To install VMTK go to 
 
-Installatiion: http://www.vmtk.org/download/ (Use development version!) 
+\texttt{http://www.vmtk.org/download/}
 
-Tutorials: http://www.vmtk.org/tutorials/
+and grab the development version.
+
+The basic steps with appropriate parameter choices are briefly presented below. For more explanation and examples see
+
+\texttt{http://www.vmtk.org/tutorials/}
 
 1) Select a volume of interest(VOI)
 \begin{framed}       
@@ -97,14 +100,25 @@ Tutorials: http://www.vmtk.org/tutorials/
   \caption{Zooming in to see the meshed region.}
 \end{figure}
 
+\subsection{Measurement of blood velocities in zebrafish}
+
+The small and transparent zebrafish embryo provides an ideal animal model to get high-resolution imaging of vessels. In \cite{fieramonti2015quantitative} a method referred to as \emph{optical vector field tomography} is used to map in 3D the velocity of blood cells in the zebrafish vascular network. 
+
+\begin{figure}[h!] 
+\begin{center}
+  \includegraphics[scale=0.5]{blood_velocities.png}
+  \end{center}
+  \caption{Some of results from \cite{fieramonti2015quantitative}.}
+\end{figure}
+
+\textbf{Suggested project:} Very little is known about the pressure gradients driving the blood flows in zebrafish. With knowledge of the velocities from \cite{fieramonti2015quantitative}, a mesh of geometry and a suitable modle for the blood flow, do numerical experiments to find approximate values of the pressure gradients in zebrafish.
+
 \subsection{Mathematical formulation}
 
 The blood velocities in a zebrafish are low thus using \emph{Stokes flow} as a model is a fair approximation.
 
 For for geometries with lots of cells using $P_1-P_1$ formulations saves a lot of time and memory, and to even be able to run simulations on your own computer with the \texttt{zebrafish.xml} mesh such a formulation is needed. 
 
-
- 
 Find $u,p \in W,\: W = V \times Q $ such that
 \begin{align*}
 a((u,p),(v,q)) = L((v,q)) \quad \forall \quad v,q \in W 
@@ -116,11 +130,21 @@ L((v,q)) &= \int_\Omega  (v + \epsilon \nabla q) \cdot f \: dx
 \end{align*}
 Here \(\epsilon = \beta h^2\) and \(\beta\) is some number and \(h\) is the mesh cell size.
 
-Boundary conditions
+Boundary conditions:
 \begin{align*}
 u = 0 \quad &on \quad \partial \Omega_{\text{ no-slip}} \\
 \sigma \cdot \mathbf{n} = p_i\mathbf{n} \quad &on \quad \partial \Omega_\text{ opening(i)},\quad i=1,..,5
 \end{align*}
+
+\subsection{Results}
+
+\begin{figure}[h!] 
+\begin{center}
+  \includegraphics[scale=0.4]{result.png}
+  \end{center}
+  \caption{Zooming in to see the meshed region.}
+\end{figure}
+
 
 \section{Squeezing a postdoc's brain}
 
@@ -156,4 +180,9 @@ The material parameters for Erika's brain are $E = 16000 $ Pa and $\nu = 0.25$. 
 \begin{align*}
 \lambda = \frac{E \nu}{(1-2\nu)(1+\nu)} \quad and \quad \mu = \frac{E}{2(1+\nu)}.
 \end{align*}
+
+\bibliographystyle{plain}
+\bibliography{./papers}
+
+
 \end{document}
