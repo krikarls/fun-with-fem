@@ -2793,7 +2793,7 @@
     </Proxy>
     <Proxy group="sources" type="PVDReader" id="2898" servers="1">
       <Property name="FileName" id="2898.FileName" number_of_elements="1">
-        <Element index="0" value="/home/kent-and/papers/fun-with-fem/brain/src/deformed_brain.pvd"/>
+        <Element index="0" value="/home/krister/Documents/GitHub/fun-with-fem/brain/src/deformed_brain.pvd"/>
         <Domain name="files" id="2898.FileName.files"/>
       </Property>
       <Property name="TimestepValues" id="2898.TimestepValues" number_of_elements="1">
@@ -2802,7 +2802,7 @@
     </Proxy>
     <Proxy group="sources" type="PVDReader" id="3210" servers="1">
       <Property name="FileName" id="3210.FileName" number_of_elements="1">
-        <Element index="0" value="/home/kent-and/papers/fun-with-fem/brain/src/deformed_brain.pvd"/>
+        <Element index="0" value="/home/krister/Documents/GitHub/fun-with-fem/brain/src/deformed_brain.pvd"/>
         <Domain name="files" id="3210.FileName.files"/>
       </Property>
       <Property name="TimestepValues" id="3210.TimestepValues" number_of_elements="1">

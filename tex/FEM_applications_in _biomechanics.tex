@@ -4,6 +4,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 
+\usepackage{listings}
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -22,6 +23,56 @@
 
 \title{Applications of finite element methods in biomechanics}
 \author{Krister Stræte Karlsen}
+
+% Define colors for python code 
+\definecolor{Code}{rgb}{0,0,0}
+\definecolor{Decorators}{rgb}{0.5,0.5,0.5}
+\definecolor{Numbers}{rgb}{0.5,0,0}
+\definecolor{MatchingBrackets}{rgb}{0.25,0.5,0.5}
+\definecolor{Keywords}{rgb}{0,0,1}
+\definecolor{self}{rgb}{0,0,0}
+\definecolor{Strings}{rgb}{0,0.63,0}
+\definecolor{Comments}{rgb}{0,0.63,1}
+\definecolor{Backquotes}{rgb}{0,0,0}
+\definecolor{Classname}{rgb}{0,0,0}
+\definecolor{FunctionName}{rgb}{0,0,0}
+\definecolor{Operators}{rgb}{0,0,0}
+\definecolor{Background}{rgb}{0.98,0.98,0.98}
+
+\lstnewenvironment{python}[1][]{
+\lstset{
+numbers=left,
+breaklines=true
+numberstyle=\footnotesize,
+numbersep=1em,
+xleftmargin=1em,
+framextopmargin=2em,
+framexbottommargin=2em,
+showspaces=false,
+showtabs=false,
+showstringspaces=false,
+frame=l,
+tabsize=4,
+% Basic
+basicstyle=\ttfamily ,
+backgroundcolor=\color{Background},
+language=Python,
+% Comments
+commentstyle=\color{Comments}\slshape,
+% Strings
+stringstyle=\color{Strings},
+morecomment=[s][\color{Strings}]{"""}{"""},
+morecomment=[s][\color{Strings}]{'''}{'''},
+% keywords
+morekeywords={import,from,class,def,for,while,if,is,in,elif,else,not,and,or,print,break,continue,return,True,False,None,access,as,,del,except,exec,finally,global,import,lambda,pass,print,raise,try,assert},
+keywordstyle={\color{Keywords}\bfseries},
+% additional keywords
+morekeywords={[2]@invariant},
+keywordstyle={[2]\color{Decorators}\slshape},
+emph={self},
+emphstyle={\color{self}\slshape},
+%
+}}{}
 
 \begin{document}
 
@@ -62,17 +113,25 @@ Starting from \texttt{original\_zebrafish.vti} a finite element method mesh can 
 
 \texttt{http://www.vmtk.org/download/}
 
-and grab the development version.
+and grab the development version in a few simple steps:
 
-The basic steps with appropriate parameter choices are briefly presented below. For more explanation and examples see
+- Clone the git repository: \texttt{https://github.com/vmtk/vmtk.git}
 
-\texttt{http://www.vmtk.org/tutorials/}
+- Create a build directory and cd into it
+
+- Run \texttt{cmake ../vmtk} with the directory where the vmtk source tree is located as an argument 
+
+- Start the compiler in your build directory by running \texttt{make}
+
+Next, the steps needed to create a mesh from the image-file is outlined. The reader is advised to experiment with the different parameteres used in the scripts, and the parameters suggested here should serve as a staring point. For more information see \texttt{http://www.vmtk.org/tutorials/}.
+
+
 
 1) Select a volume of interest(VOI)
 \begin{framed}       
     \texttt{vmtkimagevoiselector -ifile original.vti -ofile voi.vti}
 \end{framed}
-2) Segmentation
+2) Segmentation (this is the tricky and time consuming part)
 \begin{framed}       
     \texttt{vmtklevelsetsegmentation -ifile voi.vti -ofile levelsets.vti}
 \end{framed}
@@ -139,6 +198,7 @@ u = 0 \quad &on \quad \partial \Omega_{\text{ no-slip}} \\
 
 \subsection{Results}
 
+
 \begin{figure}[h!] 
 \begin{center}
   \includegraphics[scale=0.4]{result.png}
@@ -154,16 +214,24 @@ We would very much like to squeeze postdoc Erika Lindström's brain. Since she h
 A mesh of Erika's brain can be found in the git repository:
  https://github.com/krikarls/fun-with-fem. 
  
- \begin{figure}[h!] 
-\begin{center}
-  \includegraphics[scale=0.4]{brain.png}
-  \end{center}
-  \caption{Numerical solution using FEniCS. Displacement measured in $mm$.}
-\end{figure}
 
 The brain is not clamped in the skull, but in a sense floating around. This means that we must employ \emph{neumann boundary conditions} on the entire boundary. As we know, there are no unique solution to such a problem since all \emph{rigid motions} satify the equation. So in order to obtain a unique solution we must remove all rigid motions. All the possible rigid motions in 3D are: translations in $x,y,z$-direction and rotations around the corresponding axes. Thus six in total.
 
 An example using \emph{FEniCS} on how to remove these can be found in the same repository as the brain mesh. 
+
+\subsection{Paraview}
+\emph{ParaView} is an great open-source, multi-platform data analysis and visualization software. For instance results and other data obtained using \emph{FEniCS} can be studied in more detial with ParaView.  
+
+\subsubsection{Load/save state}
+
+Being able to save your work, and later load it, properly is important. This is done using the \emph{save/load state} function in ParaView. If you are switching between computers, or collaborating with others, this might not work, but luckily there is an easy fix. The problem is that the state file contains information about specific path to the location to which it was saved. 
+
+As an example, let's try to open the state file  \texttt{screen\_shot.pvsm} from where Figure [] is taken. ParaView will very likely give you an error. To fix this open the file in some text editor, search for parts of original path, something like "/home.." and you will find lines like 
+
+\texttt{<Element index="0"value="/home/krister/ ..../deformed\_brain.pvd"/>}
+
+Replace 
+
 
 \subsection{Mathematical formulation}
 
@@ -181,6 +249,98 @@ The material parameters for Erika's brain are $E = 16000 $ Pa and $\nu = 0.25$. 
 \begin{align*}
 \lambda = \frac{E \nu}{(1-2\nu)(1+\nu)} \quad and \quad \mu = \frac{E}{2(1+\nu)}.
 \end{align*}
+
+\subsection{Implementation}
+
+\begin{python}
+from fenics import *
+
+mesh = Mesh('mesh/res32.xdmf')	# mm
+
+plot(mesh,interactive=True)
+
+# Since the mesh is in mm pressure units in pascal must be scaled by alpha = (1e6)**(-1)
+alpha = (1e6)**(-1)
+
+# Mark boundaries
+class Neumann_boundary(SubDomain):
+	def inside(self, x, on_boundry):
+		return on_boundry
+
+mf = FacetFunction("size_t", mesh)
+mf.set_all(0)
+
+Neumann_boundary().mark(mf, 1)
+ds = ds[mf]
+
+# Continuum mechanics
+E = 16*1e3 *alpha
+nu = 0.25
+mu, lambda_ = Constant(E/(2*(1 + nu))), Constant(E*nu/((1 + nu)*(1 - 2*nu)))
+epsilon = lambda u: sym(grad(u))
+
+p_outside = 133 *alpha
+n = FacetNormal(mesh)
+f = Constant((0, 0, 0))
+
+V = VectorFunctionSpace(mesh, "Lagrange", 1)
+
+# --------------- Handle Neumann-problem --------------- #
+R = FunctionSpace(mesh, 'R', 0)        		 # space for one Lagrange multiplier
+M = MixedFunctionSpace([R]*6)          		 # space for all multipliers
+W = MixedFunctionSpace([V, M])
+u, mus = TrialFunctions(W)
+v, nus = TestFunctions(W)
+
+# Establish a basis for the nullspace of RM
+e0 = Constant((1, 0, 0))				# translations
+e1 = Constant((0, 1, 0))
+e2 = Constant((0, 0, 1))
+
+e3 = Expression(('-x[1]', 'x[0]', '0')) # rotations
+e4 = Expression(('-x[2]', '0', 'x[0]'))
+e5 = Expression(('0', '-x[2]', 'x[1]'))
+basis_vectors = [e0, e1, e2, e3, e4, e5]
+
+a = 2*mu*inner(epsilon(u),epsilon(v))*dx + lambda_*inner(div(u),div(v))*dx
+L = inner(f, v)*dx + p_outside*inner(n,v)*ds(1)
+
+# Lagrange multipliers contrib to a
+for i, e in enumerate(basis_vectors):
+	mu = mus[i]
+	nu = nus[i]
+	a += mu*inner(v, e)*dx + nu*inner(u, e)*dx
+
+# -------------------------------------------------------- #
+
+# Assemble the system
+A = PETScMatrix()
+b = PETScVector()
+assemble_system(a, L, A_tensor=A, b_tensor=b)
+
+# Solve
+uh = Function(W)
+solver = PETScLUSolver('mumps') # NOTE: we use direct solver for simplicity
+solver.set_operator(A)
+solver.solve(uh.vector(), b)
+
+# Split displacement and multipliers. Plot
+u, ls = uh.split(deepcopy=True) 
+plot(u, mode='displacement', title='Neumann_displacement',interactive=True)
+
+file = File('deformed_brain.pvd')
+file << u
+
+\end{python}
+
+\subsection{Results}
+
+ \begin{figure}[h!] 
+\begin{center}
+  \includegraphics[scale=0.4]{brain.png}
+  \end{center}
+  \caption{Numerical solution using FEniCS. Displacement measured in $mm$.}
+\end{figure}
 
 \bibliographystyle{plain}
 \bibliography{./papers}
