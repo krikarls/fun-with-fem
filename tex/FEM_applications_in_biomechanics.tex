@@ -115,13 +115,20 @@ Starting from \texttt{original\_zebrafish.vti} a finite element method mesh can 
 
 and grab the development version in a few simple steps:
 
-- Clone the git repository: \texttt{https://github.com/vmtk/vmtk.git}
+\quad 1) Clone the git repository: \texttt{https://github.com/vmtk/vmtk.git}
 
-- Create a build directory and cd into it
+\quad 2) Create a build directory and cd into it
 
-- Run \texttt{cmake ../vmtk} with the directory where the vmtk source tree is located as an argument 
+\quad 3) Run \texttt{cmake ../vmtk} with a path to vmtk source tree
 
-- Start the compiler in your build directory by running \texttt{make}
+\quad 4) Start the compiler in your build directory by running \texttt{make}
+
+ \begin{figure}[h!] 
+\begin{center}
+  \includegraphics[scale=0.3]{overview2.png}
+  \end{center}
+  \caption{The circulatory system of a zebrafish where a small part is meshed.}
+\end{figure}
 
 Next, the steps needed to create a mesh from the image-file is outlined. The reader is advised to experiment with the different parameteres used in the scripts, and the parameters suggested here should serve as a staring point. For more information see \texttt{http://www.vmtk.org/tutorials/}.
 
@@ -143,27 +150,58 @@ Next, the steps needed to create a mesh from the image-file is outlined. The rea
 \begin{framed}       
     \texttt{dvmtksurfacesmoothing -ifile surf.vtp -passband 0.1 -iterations 30 -ofile sm\_surf.vtp}
 \end{framed}
-5) Clip surface
+
+\begin{figure}[h!] 
+\begin{center}
+  \includegraphics[scale=0.3]{smoothing.png}
+  \end{center}
+  \caption{Surface before and after smoothing, i.e. \texttt{surf.vtp} and \texttt{sm\_surf.vtp}.}
+\end{figure}
+
+5) Clip surface to create openings
 \begin{framed}       
     \texttt{vmtksurfaceclipper -ifile sm\_surf.vtp -ofile cl\_surface.vtp}
 \end{framed}
-6) Generate mesh
-\begin{framed}       
-    \texttt{vmtkmeshgenerator -ifile cl\_surface.vtp -ofile zebramesh.vtu -edgelength
-1.0}
+6) Cap openings 
+\begin{framed}    
+\texttt{vmtksurfacecapper -ifile cl\_surf.vtp -ofile cap\_surf.vtp}
 \end{framed}
-7) Convert to dolfin-format
+7) Remesh. This is usually needed after clipping and capping to avoid \emph{"triangle soup"}, see Figure 	. 
+\begin{framed}    
+\texttt{vmtksurfaceremeshing -ifile cap\_surf.vtp -ofile remeshed\_surf.stl}
+\end{framed}
+
+\begin{figure}[h!] 
+\begin{center}
+  \includegraphics[scale=0.3]{remsh.png}
+  \end{center}
+  \caption{Before and after remeshing}
+\end{figure}
+
+In order to successfully generate a volumemesh using VMTK the surface has to perfect and there's a good chance that remeshing was not good enough. Luckily there are programs with cleaning filters to take care of the job. For example the open open source software \emph{MeshLab}, available in ubuntu repository. 
+
+Next MeshLabs clean filter called \emph{remove isolated pieces(wrt diameter) } is used to create \texttt{cleaned\_surf.stl}. This is now a perfectly good surface ready for mesh generation!
+
+8) Generate mesh
+\begin{framed}       
+    \texttt{vmtkmeshgenerator -ifile cl\_surf.vtp -ofile zebramesh.vtu -edgelength 1.0}
+\end{framed}
+
+You'll see that for this mesh \emph{edgelength 1.0} gives a very fine mesh and calls for the need for a computer cluster. So some bigger edgelength is recommended.
+
+9) Convert to dolfin-format
 \begin{framed}       
     \texttt{vmtkmeshwriter -ifile zebramesh.vtu -entityidsarray CellEntityIds -ofile zebra\_mesh.xml}
 \end{framed}
 
+The mesh can now be imported with FEniCS and blood can start flowing. 
 
- \begin{figure}[h!] 
-\begin{center}
-  \includegraphics[scale=0.3]{overview2.png}
-  \end{center}
-  \caption{The circulatory system of a zebrafish where a small part is meshed.}
-\end{figure}
+\begin{python}
+from fenics import *
+mesh = Mesh('mesh.xml')
+plot(mesh,interactive=True)
+\end{python}
+
 
 \begin{figure}[h!] 
 \begin{center}
@@ -195,6 +233,15 @@ Boundary conditions:
 u = 0 \quad &on \quad \partial \Omega_{\text{ no-slip}} \\
 \sigma \cdot \mathbf{n} = p_i\mathbf{n} \quad &on \quad \partial \Omega_\text{ opening(i)},\quad i=1,..,5
 \end{align*}
+
+\subsection{Implementation}
+
+\begin{python}
+from fenics import *
+
+[Stokes code to be included here]
+\end{python}
+
 
 \subsection{Results}
 
@@ -255,81 +302,7 @@ The material parameters for Erika's brain are $E = 16000 $ Pa and $\nu = 0.25$. 
 \begin{python}
 from fenics import *
 
-mesh = Mesh('mesh/res32.xdmf')	# mm
-
-plot(mesh,interactive=True)
-
-# Since the mesh is in mm pressure units in pascal must be scaled by alpha = (1e6)**(-1)
-alpha = (1e6)**(-1)
-
-# Mark boundaries
-class Neumann_boundary(SubDomain):
-	def inside(self, x, on_boundry):
-		return on_boundry
-
-mf = FacetFunction("size_t", mesh)
-mf.set_all(0)
-
-Neumann_boundary().mark(mf, 1)
-ds = ds[mf]
-
-# Continuum mechanics
-E = 16*1e3 *alpha
-nu = 0.25
-mu, lambda_ = Constant(E/(2*(1 + nu))), Constant(E*nu/((1 + nu)*(1 - 2*nu)))
-epsilon = lambda u: sym(grad(u))
-
-p_outside = 133 *alpha
-n = FacetNormal(mesh)
-f = Constant((0, 0, 0))
-
-V = VectorFunctionSpace(mesh, "Lagrange", 1)
-
-# --------------- Handle Neumann-problem --------------- #
-R = FunctionSpace(mesh, 'R', 0)        		 # space for one Lagrange multiplier
-M = MixedFunctionSpace([R]*6)          		 # space for all multipliers
-W = MixedFunctionSpace([V, M])
-u, mus = TrialFunctions(W)
-v, nus = TestFunctions(W)
-
-# Establish a basis for the nullspace of RM
-e0 = Constant((1, 0, 0))				# translations
-e1 = Constant((0, 1, 0))
-e2 = Constant((0, 0, 1))
-
-e3 = Expression(('-x[1]', 'x[0]', '0')) # rotations
-e4 = Expression(('-x[2]', '0', 'x[0]'))
-e5 = Expression(('0', '-x[2]', 'x[1]'))
-basis_vectors = [e0, e1, e2, e3, e4, e5]
-
-a = 2*mu*inner(epsilon(u),epsilon(v))*dx + lambda_*inner(div(u),div(v))*dx
-L = inner(f, v)*dx + p_outside*inner(n,v)*ds(1)
-
-# Lagrange multipliers contrib to a
-for i, e in enumerate(basis_vectors):
-	mu = mus[i]
-	nu = nus[i]
-	a += mu*inner(v, e)*dx + nu*inner(u, e)*dx
-
-# -------------------------------------------------------- #
-
-# Assemble the system
-A = PETScMatrix()
-b = PETScVector()
-assemble_system(a, L, A_tensor=A, b_tensor=b)
-
-# Solve
-uh = Function(W)
-solver = PETScLUSolver('mumps') # NOTE: we use direct solver for simplicity
-solver.set_operator(A)
-solver.solve(uh.vector(), b)
-
-# Split displacement and multipliers. Plot
-u, ls = uh.split(deepcopy=True) 
-plot(u, mode='displacement', title='Neumann_displacement',interactive=True)
-
-file = File('deformed_brain.pvd')
-file << u
+[Elasticity code to be included here]
 
 \end{python}
 
