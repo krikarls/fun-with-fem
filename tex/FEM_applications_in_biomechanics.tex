@@ -78,6 +78,9 @@ emphstyle={\color{self}\slshape},
 
 \maketitle
 
+All data belonging to this chapter can be found in: \\
+{\color{Strings} \texttt{https://github.com/krikarls/fun-with-fem.git} }
+
 \section{Blood flow in zebrafish}
 
 Since the 1960s, the zebrafish has become increasingly important to scientific research. It has many characteristics that make it a valuable model for studying human genetics and disease. It was the first vertebrate to be cloned and is particularly notable for its regenerative abilities. Zebrafish have a similar genetic structure to humans. They share 70 per cent of genes with us and they are cheaper to maintain than mice. The zebrafish adult is about 2.5 cm to 4 cm long. 
@@ -134,7 +137,7 @@ Next, the steps needed to create a mesh from the image-file is outlined. The rea
 
 
 
-1) Select a volume of interest(VOI)
+1) Select a volume of interest
 \begin{framed}       
     \texttt{vmtkimagevoiselector -ifile original.vti -ofile voi.vti}
 \end{framed}
@@ -162,6 +165,9 @@ Next, the steps needed to create a mesh from the image-file is outlined. The rea
 \begin{framed}       
     \texttt{vmtksurfaceclipper -ifile sm\_surf.vtp -ofile cl\_surface.vtp}
 \end{framed}
+
+Two of the openings in \texttt{cl\_surface.vtp} should not be there. They appear because some parts of the vessels lie outside the original image. These must be capped. For the capping to be successful the should be clipped such that the edges are straight.
+
 6) Cap openings 
 \begin{framed}    
 \texttt{vmtksurfacecapper -ifile cl\_surf.vtp -ofile cap\_surf.vtp}
@@ -201,6 +207,11 @@ from fenics import *
 mesh = Mesh('mesh.xml')
 plot(mesh,interactive=True)
 \end{python}
+
+\textbf{Marking openings in FEniCS}
+
+Subdomains of the inlets and outlets need to be made and for complex geometries that might not be trivial. If the surface was clipped in a clever way, the job can still be pretty easy. A clever way to clip is placing the openings orthogonal to the coordinate axes(unless you love finding equations of planes).
+
 
 
 \begin{figure}[h!] 
