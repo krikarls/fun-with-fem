@@ -212,6 +212,26 @@ plot(mesh,interactive=True)
 
 Subdomains of the inlets and outlets need to be made and for complex geometries that might not be trivial. If the surface was clipped in a clever way, the job can still be pretty easy. A clever way to clip is placing the openings orthogonal to the coordinate axes(unless you love finding equations of planes).
 
+1) Open the final surface file in ParaView.
+
+2) Select the points around one opening and use \emph{extract selection}.
+
+3) The range of the points can now be found and marked in FEniCS.
+
+\begin{figure}[h!] 
+\begin{center}
+  \includegraphics[scale=0.5]{marking.png}
+  \end{center}
+  \caption{Zooming in to see the meshed region.}
+\end{figure}
+
+The points defining the opening featured in Figure [] is in the plane $x = 653$ and lie above some y-value. This can be marked in FEniCS as in the example below.
+
+\begin{python}
+class Outlet(SubDomain): 
+	def inside(self, x, on_boundry):
+		return (x[0] > 653-eps) and (x[1] > 360.) and on_boundry
+\end{python}
 
 
 \begin{figure}[h!] 
