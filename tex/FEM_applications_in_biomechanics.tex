@@ -94,7 +94,6 @@ Since the 1960s, the zebrafish has become increasingly important to scientific r
 
 To study the effect of different drugs being able to model the blood flow is important. For instance, if the drug actually never reaches the infected cells a potentially effective drug might be considered ineffective on wrong ground. Due to ethical reasons all experiments on zebrafish must be done at an very early stage of its development.
 
-
 \subsection{Measurement of blood velocities in zebrafish}
 
 The small and transparent zebrafish embryo provides an ideal animal model to get high-resolution imaging of vessels. In \cite{fieramonti2015quantitative} a method referred to as \emph{optical vector field tomography} is used to map in 3D the velocity of blood cells in the zebrafish vascular network. 
@@ -112,19 +111,7 @@ The small and transparent zebrafish embryo provides an ideal animal model to get
 
 {\color{red} Kent: Kan du si noe om hva slags bilder dette er?}
 
-Starting from \texttt{original\_zebrafish.vti} a finite element method mesh can be created using a software called \emph{The Vascular Modeling Toolkit(VMTK)}. VMTK is a collection of libraries and tools for 3D reconstruction, geometric analysis, mesh generation and surface data analysis for image-based modeling of blood vessels. To install VMTK go to 
-
-\texttt{http://www.vmtk.org/download/}
-
-and grab the development version in a few simple steps:
-
-\quad 1) Clone the git repository: \texttt{https://github.com/vmtk/vmtk.git}
-
-\quad 2) Create a build directory and cd into it
-
-\quad 3) Run \texttt{cmake ../vmtk} with a path to vmtk source tree
-
-\quad 4) Start the compiler in your build directory by running \texttt{make}
+Starting from \texttt{original\_zebrafish.vti} a finite element method mesh can be created using a software called \emph{The Vascular Modeling Toolkit(VMTK)}. VMTK is a collection of libraries and tools for 3D reconstruction, geometric analysis, mesh generation and surface data analysis for image-based modeling of blood vessels. To install the development version of VMTK(this is strongly suggested) go through the follwing steps: 
 
  \begin{figure}[h!] 
 \begin{center}
@@ -133,15 +120,23 @@ and grab the development version in a few simple steps:
   \caption{The circulatory system of a zebrafish where a small part is meshed.}
 \end{figure}
 
-Next, the steps needed to create a mesh from the image-file is outlined. The reader is advised to experiment with the different parameteres used in the scripts, and the parameters suggested here should serve as a staring point. For more information see \texttt{http://www.vmtk.org/tutorials/}.
+\quad 1) Clone the git repository: {\color{Strings} \texttt{https://github.com/vmtk/vmtk.git}}
 
+\quad 2) Create a build directory and cd into it
 
+\quad 3) Run \texttt{cmake ../vmtk} with a path to vmtk source tree
+
+\quad 4) Start the compiler in your build directory by running \texttt{make}
+
+Next, the steps needed to create a mesh from the image-file is outlined. The reader is advised to experiment with the different parameteres used in the scripts, and the parameters suggested here should serve only as a staring point. For more information see {\color{Strings}\texttt{http://www.vmtk.org/tutorials/}}.
+
+\vspace{0.5cm}
 
 1) Select a volume of interest
 \begin{framed}       
     \texttt{vmtkimagevoiselector -ifile original.vti -ofile voi.vti}
 \end{framed}
-2) Segmentation (this is the tricky and time consuming part)
+2) Segmentation (this is tricky and very time consuming)
 \begin{framed}       
     \texttt{vmtklevelsetsegmentation -ifile voi.vti -ofile levelsets.vti}
 \end{framed}
@@ -151,7 +146,7 @@ Next, the steps needed to create a mesh from the image-file is outlined. The rea
 \end{framed}
 4) Smoothing of surface
 \begin{framed}       
-    \texttt{dvmtksurfacesmoothing -ifile surf.vtp -passband 0.1 -iterations 30 -ofile sm\_surf.vtp}
+    \texttt{vmtksurfacesmoothing -ifile surf.vtp -passband 0.1 -iterations 30 -ofile sm\_surf.vtp}
 \end{framed}
 
 \begin{figure}[h!] 
@@ -166,7 +161,7 @@ Next, the steps needed to create a mesh from the image-file is outlined. The rea
     \texttt{vmtksurfaceclipper -ifile sm\_surf.vtp -ofile cl\_surface.vtp}
 \end{framed}
 
-Two of the openings in \texttt{cl\_surface.vtp} should not be there. They appear because some parts of the vessels lie outside the original image. These must be capped. For the capping to be successful the should be clipped such that the edges are straight.
+Two of the openings in \texttt{cl\_surface.vtp} should not be there. They appear because parts of the vessels lie outside the original image. These must be capped. For the capping to be successful the openings should be clipped first so that the edges are straight.
 
 6) Cap openings 
 \begin{framed}    
@@ -184,7 +179,7 @@ Two of the openings in \texttt{cl\_surface.vtp} should not be there. They appear
   \caption{Before and after remeshing}
 \end{figure}
 
-In order to successfully generate a volumemesh using VMTK the surface has to perfect and there's a good chance that remeshing was not good enough. Luckily there are programs with cleaning filters to take care of the job. For example the open open source software \emph{MeshLab}, available in ubuntu repository. 
+In order to successfully generate a volumemesh using VMTK the surface has to perfect and there's a good chance that remeshing was not sufficient. Luckily there are other software with excellent cleaning filters to take care of the job. For example the open source software \emph{MeshLab}, available in ubuntu repository. 
 
 Next MeshLabs clean filter called \emph{remove isolated pieces(wrt diameter) } is used to create \texttt{cleaned\_surf.stl}. This is now a perfectly good surface ready for mesh generation!
 
@@ -193,7 +188,7 @@ Next MeshLabs clean filter called \emph{remove isolated pieces(wrt diameter) } i
     \texttt{vmtkmeshgenerator -ifile cl\_surf.vtp -ofile zebramesh.vtu -edgelength 1.0}
 \end{framed}
 
-You'll see that for this mesh \emph{edgelength 1.0} gives a very fine mesh and calls for the need for a computer cluster. So some bigger edgelength is recommended.
+You'll see that for this mesh \texttt{edgelength 1.0} gives a very fine mesh that calls for the need for a computer cluster. So some bigger edgelength is recommended.
 
 9) Convert to dolfin-format
 \begin{framed}       
@@ -208,6 +203,8 @@ mesh = Mesh('mesh.xml')
 plot(mesh,interactive=True)
 \end{python}
 
+\newpage
+
 \textbf{Marking openings in FEniCS}
 
 Subdomains of the inlets and outlets need to be made and for complex geometries that might not be trivial. If the surface was clipped in a clever way, the job can still be pretty easy. A clever way to clip is placing the openings orthogonal to the coordinate axes(unless you love finding equations of planes).
@@ -216,16 +213,18 @@ Subdomains of the inlets and outlets need to be made and for complex geometries 
 
 2) Select the points around one opening and use \emph{extract selection}.
 
-3) The range of the points can now be found and marked in FEniCS.
+3) The range of the points(\emph{"bounds"}) can now be found and marked in FEniCS.
+
+\textbf{Example:}
 
 \begin{figure}[h!] 
 \begin{center}
   \includegraphics[scale=0.5]{marking.png}
   \end{center}
-  \caption{Zooming in to see the meshed region.}
+  \caption{Marking of points and finding their range in ParaView.}
 \end{figure}
 
-The points defining the opening featured in Figure [] is in the plane $x = 653$ and lie above some y-value. This can be marked in FEniCS as in the example below.
+From Figure [] we can see that the points defining the opening is in the plane $x = 653$ and lie above some y-value. This can be marked in FEniCS as in the example below.
 
 \begin{python}
 class Outlet(SubDomain): 
@@ -233,14 +232,7 @@ class Outlet(SubDomain):
 		return (x[0] > 653-eps) and (x[1] > 360.) and on_boundry
 \end{python}
 
-
-\begin{figure}[h!] 
-\begin{center}
-  \includegraphics[scale=0.3]{zoomed2.png}
-  \end{center}
-  \caption{Zooming in to see the meshed region.}
-\end{figure}
-
+Prescribing inlet and outlet velocities on such oddly shaped openings can be tricky. It is possible to extend the openings circular tubes so that parabolic velocity profiles can be used. Another option is to instead set the pressure. 
 
 \subsection{Mathematical formulation}
 
