@@ -77,7 +77,7 @@ b = (mu*inner(grad(u), grad(v))*dx + p*q/mu*dx + beta*h*h*inner(grad(p), grad(q)
 L =  inner(v + beta*h*h*grad(q), f)*dx \
    + inner(v,Constant(ppx*150)*n)*ds(4) + inner(v,Constant(0)*n)*ds(5) \
    + inner(v,Constant(0)*n)*ds(3)  \
-   + inner(v,p_bot*n)*ds(1) + inner(v,Constant(ppx*20)*n)*ds(2)
+   + inner(v,Constant(ppx*20)*n)*ds(1) + inner(v,Constant(0)*n)*ds(2)
 
 # Assemble system
 (A, bb) = assemble_system(a, L, noslip)
