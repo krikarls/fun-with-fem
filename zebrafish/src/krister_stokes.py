@@ -5,7 +5,7 @@ parameters["krylov_solver"]["absolute_tolerance"] = 1.0e-8
 parameters["krylov_solver"]["monitor_convergence"] = False 
 parameters["krylov_solver"]["maximum_iterations"] = 10000
 
-mesh = Mesh('zebra_edgelength2.xml')
+mesh = Mesh('../mesh/zebrafish_mesh.xml.gz')    # micrometre (um)
 
 # Mark opening(numbered bottom to top, left to right)
 
@@ -57,27 +57,33 @@ w = Function(W)
 
 # Parameters
 h = CellSize(mesh)   
-beta = Constant(0.2)             # stabilization factor
-ppx = Constant(9.375E-8)         # pressure gradient in uPa/um
-p_top = Constant(ppx * 192)
-p_mid = Constant(ppx * 105)
-p_bot = Constant(ppx * 0)
+beta = Constant(0.2)        # stabilization factor
 mu = Constant(3.5E-9)
-#mu = Consatnt(1E-3)     
 
+# Pressure
+dp = 9.375E-8               # pressure gradient in uPa/um
+p1 = Constant(dp*20)
+p2 = Constant(0)
+p3 = Constant(0)
+p4 = Constant(dp*150)
+p5 = Constant(0)
+
+# Boundary condition
 noslip = DirichletBC(W.sub(0), Constant((0,0,0)), mf, 0)
 
 # Define variational problem
 f = Constant((0,0,0))
 
-a = (mu*inner(grad(u), grad(v))*dx + div(v)*p*dx + div(u)*q*dx - beta*h*h*inner(grad(p), grad(q))*dx)
+a = (mu*inner(grad(u), grad(v))*dx + div(v)*p*dx \
+    + div(u)*q*dx - beta*h*h*inner(grad(p), grad(q))*dx)
 
-b = (mu*inner(grad(u), grad(v))*dx + p*q/mu*dx + beta*h*h*inner(grad(p), grad(q))*dx)
+b = (mu*inner(grad(u), grad(v))*dx + p*q/mu*dx \
+    + beta*h*h*inner(grad(p), grad(q))*dx)
 
 L =  inner(v + beta*h*h*grad(q), f)*dx \
-   + inner(v,Constant(ppx*150)*n)*ds(4) + inner(v,Constant(0)*n)*ds(5) \
-   + inner(v,Constant(0)*n)*ds(3)  \
-   + inner(v,Constant(ppx*20)*n)*ds(1) + inner(v,Constant(0)*n)*ds(2)
+   + inner(v,p4*n)*ds(4) + inner(v,p5*n)*ds(5) \
+   + inner(v,p3*n)*ds(3)  \
+   + inner(v,p1*n)*ds(1) + inner(v,p2*n)*ds(2)
 
 # Assemble system
 (A, bb) = assemble_system(a, L, noslip)
@@ -95,7 +101,8 @@ start_time = time.time()
 
 solver.solve(U.vector(), bb)
 
-print ' \n Time used to solve system:', (time.time()-start_time)/60, 'min'
+print ' \n Time used to solve system:', \
+       (time.time()-start_time)/60, 'min'
 
 # Get sub-functions
 u, p = U.split()

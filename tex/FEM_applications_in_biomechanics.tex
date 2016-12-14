@@ -90,19 +90,21 @@ Since the 1960s, the zebrafish has become increasingly important to scientific r
     \includegraphics[width=0.4\textwidth]{zebrafish.png}
   \end{center}
   \caption{Stages of zebrafish development.}
+      \label{fig:zebrafisk_development}
 \end{wrapfigure}
 
-To study the effect of different drugs being able to model the blood flow is important. For instance, if the drug actually never reaches the infected cells a potentially effective drug might be considered ineffective on wrong ground. Due to ethical reasons all experiments on zebrafish must be done at an very early stage of its development.
+To study the effect of different drugs being able to model the blood flow is important. For instance, if the drug actually never reaches the infected cells a potentially effective drug might be considered ineffective on wrong ground. Due to ethical reasons all experiments on zebrafish must be done at an very early stage of its development. Se Figure \ref{fig:zebrafisk_development}.
 
 \subsection{Measurement of blood velocities in zebrafish}
 
-The small and transparent zebrafish embryo provides an ideal animal model to get high-resolution imaging of vessels. In \cite{fieramonti2015quantitative} a method referred to as \emph{optical vector field tomography} is used to map in 3D the velocity of blood cells in the zebrafish vascular network. 
+The small and transparent zebrafish embryo provides an ideal animal model to get high-resolution imaging of vessels. In \cite{fieramonti2015quantitative} a method referred to as \emph{optical vector field tomography} is used to map in 3D the velocity of blood cells in the zebrafish vascular network. Some of the results in \cite{fieramonti2015quantitative} are featured in Figure \ref{fig:blood_velocity}.
 
 \begin{figure}[h!] 
 \begin{center}
   \includegraphics[scale=0.5]{blood_velocities.png}
   \end{center}
   \caption{Some of results from \cite{fieramonti2015quantitative}.}
+        \label{fig:blood_velocity}
 \end{figure}
 
 \textbf{Suggested project:} Very little is known about the pressure gradients driving the blood flows in zebrafish. With knowledge of the velocities from \cite{fieramonti2015quantitative}, a mesh of geometry and a suitable model for the blood flow, do numerical experiments to find approximate values of the pressure gradients in zebrafish.
@@ -118,6 +120,7 @@ Starting from \texttt{original\_zebrafish.vti} a finite element method mesh can 
   \includegraphics[scale=0.3]{overview2.png}
   \end{center}
   \caption{The circulatory system of a zebrafish where a small part is meshed.}
+\label{fig:circulatory_system}
 \end{figure}
 
 \quad 1) Clone the git repository: {\color{Strings} \texttt{https://github.com/vmtk/vmtk.git}}
@@ -154,6 +157,7 @@ Next, the steps needed to create a mesh from the image-file is outlined. The rea
   \includegraphics[scale=0.3]{smoothing.png}
   \end{center}
   \caption{Surface before and after smoothing, i.e. \texttt{surf.vtp} and \texttt{sm\_surf.vtp}.}
+  \label{fig:smoothing}
 \end{figure}
 
 5) Clip surface to create openings
@@ -167,7 +171,7 @@ Two of the openings in \texttt{cl\_surface.vtp} should not be there. They appear
 \begin{framed}    
 \texttt{vmtksurfacecapper -ifile cl\_surf.vtp -ofile cap\_surf.vtp}
 \end{framed}
-7) Remesh. This is usually needed after clipping and capping to avoid \emph{"triangle soup"}, see Figure 	. 
+7) Remesh. This is usually needed after clipping and capping, see Figure \ref{fig:remesh}. 
 \begin{framed}    
 \texttt{vmtksurfaceremeshing -ifile cap\_surf.vtp -ofile remeshed\_surf.stl}
 \end{framed}
@@ -177,6 +181,7 @@ Two of the openings in \texttt{cl\_surface.vtp} should not be there. They appear
   \includegraphics[scale=0.3]{remsh.png}
   \end{center}
   \caption{Before and after remeshing}
+    \label{fig:remesh}
 \end{figure}
 
 In order to successfully generate a volumemesh using VMTK the surface has to perfect and there's a good chance that remeshing was not sufficient. Luckily there are other software with excellent cleaning filters to take care of the job. For example the open source software \emph{MeshLab}, available in ubuntu repository. 
@@ -222,9 +227,10 @@ Subdomains of the inlets and outlets need to be made and for complex geometries 
   \includegraphics[scale=0.5]{marking.png}
   \end{center}
   \caption{Marking of points and finding their range in ParaView.}
+      \label{fig:marking_paraview}
 \end{figure}
 
-From Figure [] we can see that the points defining the opening is in the plane $x = 653$ and lie above some y-value. This can be marked in FEniCS as in the example below.
+From Figure \ref{fig:marking_paraview} we can see that the points defining the opening is in the plane $x = 653$ and lie above some y-value. This can be marked in FEniCS as in the example below.
 
 \begin{python}
 class Outlet(SubDomain): 
@@ -260,20 +266,135 @@ u = 0 \quad &on \quad \partial \Omega_{\text{ no-slip}} \\
 \subsection{Implementation}
 
 \begin{python}
-from fenics import *
+from dolfin import *
 
-[Stokes code to be included here]
+parameters["krylov_solver"]["relative_tolerance"] = 1.0e-8 
+parameters["krylov_solver"]["absolute_tolerance"] = 1.0e-8 
+parameters["krylov_solver"]["monitor_convergence"] = False 
+parameters["krylov_solver"]["maximum_iterations"] = 10000
+
+mesh = Mesh('../mesh/zebrafish_mesh.xml.gz')    # micrometre (um)
+
+# Mark opening(numbered bottom to top, left to right)
+
+class NoSlip(SubDomain):
+    def inside(self,x,on_boundry):
+        return on_boundry
+
+class Opening1(SubDomain):              
+    def inside(self, x, on_boundry):
+        return (x[0] < 602.727) and on_boundry
+
+class Opening2(SubDomain):                 
+    def inside(self, x, on_boundry):
+        return (x[0] > 710.) and on_boundry
+
+class Opening3(SubDomain):                 
+    def inside(self, x, on_boundry):
+        return (x[0] < 640.) and (x[1] > 292.) and on_boundry
+
+class Opening4(SubDomain):
+    def inside(self, x, on_boundry):
+        return (x[1] > 300.) and (x[0] < 648.) and on_boundry
+
+class Opening5(SubDomain):
+    def inside(self, x, on_boundry):
+        return (x[1] > 300.) and (x[0] > 707.5) and on_boundry
+
+mf = FacetFunction("size_t", mesh)
+mf.set_all(6)              #      _______
+NoSlip().mark(mf,0)        #     4__   __5
+Opening1().mark(mf,1)      #        | | 
+Opening2().mark(mf,2)      #      __| |
+Opening3().mark(mf,3)      #     3__  | 
+Opening4().mark(mf,4)      #        | |
+Opening5().mark(mf,5)      #     ___| |____ 
+#plot(mf,interactive=True) #    1__________2
+                             
+# Assign normal mesh function
+n = FacetNormal(mesh)
+ds = ds[mf]
+
+# Define spaces and functions
+V = VectorFunctionSpace(mesh, "Lagrange", 1)
+Q = FunctionSpace(mesh, "Lagrange", 1)
+W = V*Q
+w = Function(W)
+(u, p) = TrialFunctions(W)
+(v, q) = TestFunctions(W)
+
+# Parameters
+h = CellSize(mesh)   
+beta = Constant(0.2)        # stabilization factor
+mu = Constant(3.5E-9)
+
+# Pressure
+dp = 9.375E-8               # pressure gradient in uPa/um
+p1 = Constant(dp*20)
+p2 = Constant(0)
+p3 = Constant(0)
+p4 = Constant(dp*150)
+p5 = Constant(0)
+
+# Boundary condition
+noslip = DirichletBC(W.sub(0), Constant((0,0,0)), mf, 0)
+
+# Define variational problem
+f = Constant((0,0,0))
+
+a = (mu*inner(grad(u), grad(v))*dx + div(v)*p*dx \
+    + div(u)*q*dx - beta*h*h*inner(grad(p), grad(q))*dx)
+
+b = (mu*inner(grad(u), grad(v))*dx + p*q/mu*dx \
+    + beta*h*h*inner(grad(p), grad(q))*dx)
+
+L =  inner(v + beta*h*h*grad(q), f)*dx \
+   + inner(v,p4*n)*ds(4) + inner(v,p5*n)*ds(5) \
+   + inner(v,p3*n)*ds(3)  \
+   + inner(v,p1*n)*ds(1) + inner(v,p2*n)*ds(2)
+
+# Assemble system
+(A, bb) = assemble_system(a, L, noslip)
+(P, _) = assemble_system(b, L, noslip)
+
+# Set solver and preconditioner
+solver = KrylovSolver("gmres", "hypre_amg")
+solver.set_operators(A, P)
+
+U = Function(W)
+
+# Solve
+import time
+start_time = time.time()
+
+solver.solve(U.vector(), bb)
+
+print ' \n Time used to solve system:', \
+       (time.time()-start_time)/60, 'min'
+
+# Get sub-functions
+u, p = U.split()
+
+ufile = File("velocity.pvd")
+pfile = File("pressure.pvd")
+ufile << u
+pfile << p
+
+plot(u)
+plot(p)
+interactive()
 \end{python}
-
 
 \subsection{Results}
 
+Using the implementation suggested in the previous section realistic velocities can be obtained. See Figure \ref{fig:velocity_profile}.
 
 \begin{figure}[h!] 
 \begin{center}
-  \includegraphics[scale=0.4]{result.png}
+  \includegraphics[scale=0.5]{vel_prof.png}
   \end{center}
-  \caption{Zooming in to see the meshed region.}
+  \caption{Velocity profile obtained from running the code from the implementation section, here viewed in ParaView. .}
+ \label{fig:velocity_profile}
 \end{figure}
 
 
@@ -281,26 +402,25 @@ from fenics import *
 
 We would very much like to squeeze postdoc Erika Lindström's brain. Since she has refused to let us do this with our hands in her office, we must do this on a computer using her brain as our computational domain. The brain will be deformed as a result of the squeezing and to capture this effect we will use a \emph{linear elastic} model. 
 
-A mesh of Erika's brain can be found in the git repository:
- https://github.com/krikarls/fun-with-fem. 
- 
+A mesh of Erika's brain can be found in the git repository. 
 
 The brain is not clamped in the skull, but in a sense floating around. This means that we must employ \emph{neumann boundary conditions} on the entire boundary. As we know, there are no unique solution to such a problem since all \emph{rigid motions} satify the equation. So in order to obtain a unique solution we must remove all rigid motions. All the possible rigid motions in 3D are: translations in $x,y,z$-direction and rotations around the corresponding axes. Thus six in total.
 
 An example using \emph{FEniCS} on how to remove these can be found in the same repository as the brain mesh. 
 
 \subsection{Paraview}
-\emph{ParaView} is an great open-source, multi-platform data analysis and visualization software. For instance results and other data obtained using \emph{FEniCS} can be studied in more detial with ParaView.  
+\emph{ParaView} is an great open-source, multi-platform data analysis and visualization software. For instance results and other data generated using \emph{FEniCS} can be studied in more detial with ParaView.  
 
 \subsubsection{Load/save state}
 
-Being able to save your work, and later load it, properly is important. This is done using the \emph{save/load state} function in ParaView. If you are switching between computers, or collaborating with others, this might not work, but luckily there is an easy fix. The problem is that the state file contains information about specific path to the location to which it was saved. 
+Being able to save your work and later properly load it is important. This is done using the \emph{save/load state} function in ParaView. If you are switching between computers, or collaborating with others, you might get some errors loading state files. This is because the state file uses the path to \texttt{.pvd}-file on which is was originally built, and that path is usually different on different computers.
 
-As an example, let's try to open the state file  \texttt{screen\_shot.pvsm} from where Figure [] is taken. ParaView will very likely give you an error. To fix this open the file in some text editor, search for parts of original path, something like "/home.." and you will find lines like 
+\textbf{Example}: 
+Let's try to open the state file \texttt{screen\_shot.pvsm} from where Figure [] is taken. ParaView will likely give you an error. To fix this open the file in a text editor, search for the name of the \texttt{.pvd}-file and you will fine one or more lines like:
 
-\texttt{<Element index="0"value="/home/krister/ ..../deformed\_brain.pvd"/>}
+\texttt{<Element index="0"value="/home/krister/..../deformed\_brain.pvd"/>}
 
-Replace 
+Correct the path and load the state file in ParaView.
 
 
 \subsection{Mathematical formulation}
