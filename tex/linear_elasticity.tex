@@ -1,0 +1,196 @@
+\documentclass[epsfig,11pt]{article}
+\usepackage[english]{babel} % Using babel for hyphenation
+\usepackage{lmodern} % Changing the font
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{epsfig}
+\usepackage[parfill]{parskip} % Removes indents
+
+\usepackage{vmargin}
+\setpapersize{A4}
+
+\newcommand{\inr}[1]{ \Big \langle #1 \Big \rangle}
+\newcommand\pd[2][]{\ensuremath{\frac{\partial#1}{\partial#2}}} 
+
+\title{Linear elasticity}
+\author{Krister Stræte Karlsen}
+
+\begin{document}
+
+\maketitle
+
+\textbf{Preliminary concepts}
+
+Finite element methods are most widely used for computing deformations and stresses of bodies subject to load. We have all along referred to two of our favorite matrices as the \emph{mass matrix} and the \emph{stiffness matrix}. These names come from a long tradition of finite element methods in solid  mechanics and elasticity. 
+
+\begin{figure}[h!] 
+\begin{center}
+  \includegraphics[scale=0.25]{displace.png}
+  \end{center}
+\end{figure}
+
+To explain the concepts of elasticity let's consider the deformation $\chi$ of a body in the undeformed state $\Omega_0$ to deformed state $\Omega$. A point in the body has then moved
+\begin{align}
+u = x - X,
+\end{align}
+by definition this is \emph{displacement field}. 
+
+The strain is given by
+\begin{align}
+\epsilon(u) = \frac{1}{2} \left( \nabla u + (\nabla u)^T \right).
+\end{align}
+
+To describe the stress, causing the strain, we introduce {Cauchy's stress tensor}
+\begin{align}
+\sigma = \begin{pmatrix}
+\sigma_{xx} & \sigma_{xy} & \sigma_{xz} \\
+\sigma_{yx} & \sigma_{yy} & \sigma_{yz} \\
+\sigma_{zx} & \sigma_{zy} & \sigma_{zz} \\
+\end{pmatrix},
+\end{align}
+which is symmetric and contains the stress state at every point in the body. $\sigma \cdot \mathbf{n}$ gives the stress vector for a plane with unit normal $\mathbf{n}$.
+
+\textbf{Governing equation}
+
+Starting from \emph{Newton's second law} for a continuum we can now, by using the concepts introduced above, derive the governing equation for linear elasticity.
+
+\emph{Newton's second law} for a continuum is given by
+\begin{align*}
+\sum \mathbf{F} = \frac{d}{dt} \int_V \rho \mathbf{v} dV 
+\end{align*}
+where the sum of forces can be divided into forces acting on the volume(body) and forces acting on the surface, i.e $\sum \mathbf{F} = \mathbf{F}_V + \mathbf{F}_S$.
+A common assumption in elasticity and solid mechanics is that the acceleration is zero, yielding 
+\begin{align*}
+\mathbf{F}_V + \mathbf{F}_S = 0.
+\end{align*}
+Using the \emph{stress tensor} the equation above can be written in terms of integrals
+\begin{align*}
+\int_V \mathbf{F}_V dV + \int_S \sigma \cdot \mathbf{n} dS = 0.
+\end{align*}
+We want the integrals to be on the same form, using the \emph{divergence theorem} the surface integral can be converted to a volume integral
+\begin{align*}
+\int_V \mathbf{F}_V dV + \int_V \nabla \cdot \sigma dV = 0.
+\end{align*}
+Now, since this should hold for an arbitrary volume we can omit the volume integrals obtaining \emph{Cauchy's equilibrium equation:}
+\begin{align}
+\nabla \cdot \sigma + \mathbf{F}_V = 0.
+\end{align}
+
+To arrive at its final form, we must choose some relation between stress and strain, such relations are often referred to as \emph{constitutive law for engineering materials}. For linear elasticity \emph{Hooke's law} is used
+\begin{align}
+\sigma = 2 \mu \epsilon(u) + \lambda tr(\epsilon(u))\delta.
+\end{align}
+$\lambda$ and $\mu$ are parameters depending on the material.  Inserting this into Cauchy's equilibrium equation and putting it all together we obtain(the reader is strongly encouraged to check this):
+\begin{align}
+-2 \mu (\nabla \cdot \epsilon (u)) - \lambda \nabla (\nabla \cdot u) = f 
+\end{align}
+This is a second order PDE and the equation governing linear elasticity. Here $f$ is a volume force. Proper boundary conditions are 
+\begin{align*}
+u = u_0 \quad on \quad \Gamma_D, \\
+\sigma (u) \cdot n = t \quad on \quad \Gamma_N.
+\end{align*} 
+
+\textbf{Variational formulation of the homogeneous problem}
+
+Find $u$ such that 
+\begin{align}
+  2\mu \inr{\epsilon(u) , \epsilon(v) } +\lambda \inr{\nabla \cdot u,\nabla \cdot v} = \inr{f,v} \quad \forall v \in V
+\end{align} 
+
+\textbf{A closer look at the equation}
+
+Both $\nabla \cdot \epsilon(u)$ and $\nabla \nabla \cdot $ are somewhat similar to $\nabla \cdot \nabla = \Delta$.
+
+So what is the difference?
+
+First of all we will remind ourselves of the identity
+\begin{align}
+\Delta u = \nabla \nabla \cdot u - \nabla \times \nabla \times u.  
+\end{align}
+Hence in $H_0^1(\Omega)$ we have 
+\begin{align}
+\inr{\nabla u,\nabla v} = \inr{\nabla \cdot u,\nabla \cdot v} + \inr{\nabla \times u,\nabla \times v}.
+\end{align}
+
+Further we can make use of \emph{Helmholtz theorem} stating that:
+
+\emph{A sufficiently smooth vector field can be written as a gradient plus a curl, i.e.}
+\begin{align}
+u = \nabla \phi + \nabla \times \psi.
+\end{align} 
+
+We also recall from introductory vector calculus that $\nabla \times (\nabla \phi)=0$ and $\nabla (\nabla \times \psi)=0$.
+
+Combining the relations we get that
+\begin{align*}
+\nabla \nabla \cdot &= \nabla^2 \quad \text{for a gradient}, \\
+\nabla \nabla \cdot &= 0  \quad \text{for a curl}.
+\end{align*}
+
+Now over to the other term, $\nabla \cdot \epsilon(u)$.
+\begin{align*}
+\epsilon(u) = \frac{1}{2} \left( \nabla u + (\nabla u)^T \right) = \nabla^{(sym)}u
+\end{align*}
+is very similar to $\nabla u$ except that $\epsilon(u)$ is zero for a rigid motion. A \emph{rigid motion} is 
+\begin{align}
+u =  translation+rotation =  \bar{c} + D \begin{pmatrix}
+x  \\
+y \\
+z \\
+\end{pmatrix}
+\end{align}
+where $\bar{c}$ is a vector constant and $D$ is a skew-symmetric matrix.
+
+From a physical stand point it should come as no surprise that the $\epsilon(u)$ is zero for a rigid motion: If you take some object, move it and rotate it without squeezing it, the material undergoes no strain.
+
+\textbf{Rigid motion and the pure Neumann problem}
+
+Having established some essential relations we can look at the first problem with linear elasticity. We insert a rigid motion, $\tilde{u}$ into the equation and get only the trivial solution
+\begin{align*}
+-2 \mu (\nabla \cdot \epsilon (\tilde{u})) - \lambda \nabla (\nabla \cdot \tilde{u}) = 0.
+\end{align*}
+Thus rigid motion is in the kernel.
+
+Solutions of the pure Neumann problem are on the form 
+\begin{align*}
+u = v + \tilde{u}, \quad \tilde{u} \in RM,
+\end{align*}
+where $v$ is a unique solution. In other words; the solution is only unique modulo RM.
+
+\emph{Korn's lemma:} The Dirichlet problem has a unique solution. 
+
+\emph{Korn's second inequality:}
+\begin{align}
+\inr{\epsilon (u),\epsilon (u)} \geq C||u||_1^2 \quad \forall u \in H^1_0 
+\end{align}
+This is import to establish existence and uniqueness using \emph{Lax-Milgram theorem}.
+
+\textbf{Locking and nearly incompressible material}
+
+The second problem with modelling of linear elasticity is something called \emph{locking}. A numerical artifact that arises when $\lambda >> \mu$, which is the case for  nearly incompressible material. 
+
+The reason why this happens is that all elements discussed in this course approximate divergence poorly. The divergence term is essentially \emph{"locking"} the displacement, making it smaller than it should be.
+
+\textbf{A locking-free formulation}
+
+We define $p=\lambda(\nabla \cdot u)$ such that $\lambda \nabla \nabla \cdot u = \nabla p$  and the  equations become
+\begin{align}
+-2 \mu (\nabla \cdot \epsilon (u)) - \nabla p = f, \\ 
+(\nabla \cdot u) - \frac{1}{\lambda} p, = 0
+\end{align}
+with the weak mixed formulation 
+\begin{align}
+ 2\mu \inr{\epsilon(u) , \epsilon(v) }  + \inr{p ,\nabla \cdot v } = \inr{f,v} \quad \forall v \in V,  \\
+\inr{(\nabla \cdot u),q } - \frac{1}{\lambda } \inr{ p,q} = 0 \quad \forall q \in Q. 
+\end{align}
+
+This formulation is stable for the same elements as Stokes' equations. 
+
+
+
+
+\end{document}
